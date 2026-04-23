@@ -17,11 +17,9 @@ type Screen = 'splash' | 'login' | 'register' | 'dashboard' | 'settings';
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('splash');
   const [registrationPhone, setRegistrationPhone] = useState('');
-  const [isOnline, setIsOnline] = useState(true);
-  const [isCheckingOnline, setIsCheckingOnline] = useState(true);
   const { logout, user } = useAuthStore();
   const router = useRouter();
-  
+
   const {
     isEnabled: biometricEnabled,
     isLocked: biometricLocked,
@@ -31,42 +29,33 @@ export default function Home() {
     unlock: biometricUnlock,
   } = useBiometric();
 
-  // Monitor online/offline status
+  // Monitor online/offline status - more robust detection
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    // Set initial online status
+    const initiallyOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+
+    const handleOnline = () => {
+      // If we were offline and now online, navigate to home
+      if (window.location.pathname === '/offline') {
+        window.location.href = '/';
+      }
+    };
+
+    const handleOffline = () => {
+      // Navigate to offline page if not already there
+      if (window.location.pathname !== '/offline') {
+        window.location.href = '/offline';
+      }
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-
-    // Set initial online status
-    setIsOnline(navigator.onLine);
-    setIsCheckingOnline(false);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
-
-  // Redirect to offline page when offline
-  useEffect(() => {
-    if (!isOnline && currentScreen === 'splash') {
-      router.push('/offline');
-    }
-  }, [isOnline, currentScreen, router]);
-
-  // Auto-redirect when coming back online from offline page
-  useEffect(() => {
-    const handleOnline = () => {
-      if (!isOnline) {
-        setIsOnline(true);
-        router.push('/');
-      }
-    };
-    window.addEventListener('online', handleOnline);
-    return () => window.removeEventListener('online', handleOnline);
-  }, [isOnline, router]);
 
   const handleSplashComplete = useCallback((isAuthenticated: boolean) => {
     if (isAuthenticated) {
@@ -114,48 +103,6 @@ export default function Home() {
     biometricUnlock();
   }, [biometricUnlock]);
 
-  // Show offline UI when offline
-  if (isCheckingOnline || !isOnline) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#eaf7ef',
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          {isCheckingOnline ? (
-            <div>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                margin: '0 auto 20px',
-                border: '4px solid #3aa85c',
-                borderTop: '4px solid transparent',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite',
-              }} />
-              <style>{`
-                @keyframes spin {
-                  0% { transform: rotate(0deg); }
-                  100% { transform: rotate(360deg); }
-                }
-              `}</style>
-            </div>
-          ) : (
-            <>
-              <h2 style={{ color: '#3aa85c', marginBottom: '10px' }}>
-                No Internet Connection
-              </h2>
-              <p style={{ color: '#666' }}>Please check your internet connection...</p>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   // Render appropriate dashboard based on user role
   const renderDashboard = () => {
     if (user?.role === 'admin') {
@@ -187,7 +134,7 @@ export default function Home() {
           error={biometricError}
         />
       )}
-      
+
       {currentScreen === 'splash' && (
         <SplashScreen onComplete={handleSplashComplete} />
       )}

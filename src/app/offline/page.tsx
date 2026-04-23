@@ -5,14 +5,20 @@ import { motion } from 'framer-motion';
 
 export default function OfflinePage() {
   const [isRetrying, setIsRetrying] = useState(false);
+  const [online, setOnline] = useState(() => {
+    // Check if already online during initialization
+    if (typeof navigator !== 'undefined') {
+      return navigator.onLine;
+    }
+    return false;
+  });
 
   const retryConnection = () => {
     setIsRetrying(true);
     setTimeout(() => {
       if (navigator.onLine) {
-        window.location.reload();
+        window.location.href = '/';
       } else {
-        alert('Still no internet connection!');
         setIsRetrying(false);
       }
     }, 1500);
@@ -21,13 +27,24 @@ export default function OfflinePage() {
   useEffect(() => {
     // Listen for online/offline events
     const handleOnline = () => {
-      if (navigator.onLine) {
-        window.location.reload();
-      }
+      setOnline(true);
+      // Redirect to home after a short delay
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+    };
+
+    const handleOffline = () => {
+      setOnline(false);
     };
 
     window.addEventListener('online', handleOnline);
-    return () => window.removeEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   return (
@@ -38,6 +55,8 @@ export default function OfflinePage() {
       justifyContent: 'center',
       background: '#eaf7ef',
       padding: '20px',
+      margin: 0,
+      boxSizing: 'border-box',
     }}>
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -129,30 +148,30 @@ export default function OfflinePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.5 }}
           onClick={retryConnection}
-          disabled={isRetrying}
+          disabled={isRetrying || online}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '10px',
             padding: '14px 32px',
             fontSize: '18px',
-            color: isRetrying ? '#999' : '#3aa85c',
+            color: (isRetrying || online) ? '#999' : '#3aa85c',
             background: 'transparent',
             border: '2px solid #3aa85c',
             borderRadius: '50px',
-            cursor: isRetrying ? 'not-allowed' : 'pointer',
+            cursor: (isRetrying || online) ? 'not-allowed' : 'pointer',
             transition: '0.3s',
             outline: 'none',
             fontFamily: 'inherit',
           }}
           onMouseEnter={(e) => {
-            if (!isRetrying) {
+            if (!isRetrying && !online) {
               e.currentTarget.style.background = '#3aa85c';
               e.currentTarget.style.color = 'white';
             }
           }}
           onMouseLeave={(e) => {
-            if (!isRetrying) {
+            if (!isRetrying && !online) {
               e.currentTarget.style.background = 'transparent';
               e.currentTarget.style.color = '#3aa85c';
             }
@@ -170,7 +189,7 @@ export default function OfflinePage() {
                 display: 'inline-block',
               }} />
           )}
-          <span>Retry</span>
+          <span>{online ? 'Connecting...' : 'Retry'}</span>
         </motion.button>
 
         {/* Status message */}
