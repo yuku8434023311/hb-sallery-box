@@ -10,7 +10,6 @@ import { Settings } from '@/components/settings';
 import { BiometricLock } from '@/components/biometric-lock';
 import { useAuthStore } from '@/store/auth-store';
 import { useBiometric } from '@/hooks/use-biometric';
-import { useRouter } from 'next/navigation';
 
 type Screen = 'splash' | 'login' | 'register' | 'dashboard' | 'settings';
 
@@ -18,7 +17,6 @@ export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('splash');
   const [registrationPhone, setRegistrationPhone] = useState('');
   const { logout, user } = useAuthStore();
-  const router = useRouter();
 
   const {
     isEnabled: biometricEnabled,
@@ -29,20 +27,17 @@ export default function Home() {
     unlock: biometricUnlock,
   } = useBiometric();
 
-  // Monitor online/offline status - more robust detection
+  // Monitor online/offline status
   useEffect(() => {
-    // Set initial online status
-    const initiallyOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+    if (typeof window === 'undefined') return;
 
     const handleOnline = () => {
-      // If we were offline and now online, navigate to home
       if (window.location.pathname === '/offline') {
         window.location.href = '/';
       }
     };
 
     const handleOffline = () => {
-      // Navigate to offline page if not already there
       if (window.location.pathname !== '/offline') {
         window.location.href = '/offline';
       }
