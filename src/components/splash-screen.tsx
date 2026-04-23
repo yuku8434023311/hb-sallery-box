@@ -3,7 +3,6 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/auth-store';
-import { useLanguageStore } from '@/lib/i18n';
 
 interface SplashScreenProps {
   onComplete: (isAuthenticated: boolean) => void;
@@ -57,7 +56,6 @@ function useDarkMode() {
 }
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
-  const { t } = useLanguageStore();
   const [isVisible, setIsVisible] = useState(true);
   const { isAuthenticated, verifySession } = useAuthStore();
   const isDark = useDarkMode();
@@ -163,7 +161,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
               transition={{ delay: 0.7, duration: 0.6 }}
               className={`${subtitleColor} text-base`}
             >
-              {t.auth.secureStaffManagement}
+              Secure Staff Management
             </motion.p>
           </motion.div>
 
