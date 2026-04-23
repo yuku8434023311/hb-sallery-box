@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { SplashScreen } from '@/components/splash-screen';
 import { LoginScreen } from '@/components/login-screen';
 import { AdminRegistration } from '@/components/admin-registration';
@@ -52,53 +52,52 @@ export default function Home() {
     };
   }, []);
 
-  const handleSplashComplete = useCallback((isAuthenticated: boolean) => {
+  const handleSplashComplete = (isAuthenticated: boolean) => {
     if (isAuthenticated) {
       setCurrentScreen('dashboard');
     } else {
       setCurrentScreen('login');
     }
-  }, []);
+  };
 
-  const handleLogin = useCallback(() => {
+  const handleLogin = () => {
     setCurrentScreen('dashboard');
-  }, []);
+  };
 
-  const handleRegister = useCallback((phone: string) => {
+  const handleRegister = (phone: string) => {
     setRegistrationPhone(phone);
     setCurrentScreen('register');
-  }, []);
+  };
 
-  const handleRegistered = useCallback(() => {
+  const handleRegistered = () => {
     setCurrentScreen('dashboard');
-  }, []);
+  };
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = () => {
     logout();
     setCurrentScreen('login');
-  }, [logout]);
+  };
 
-  const handleSettings = useCallback(() => {
+  const handleSettings = () => {
     setCurrentScreen('settings');
-  }, []);
+  };
 
-  const handleBackFromSettings = useCallback(() => {
+  const handleBackFromSettings = () => {
     setCurrentScreen('dashboard');
-  }, []);
+  };
 
-  const handleBackFromRegister = useCallback(() => {
+  const handleBackFromRegister = () => {
     setCurrentScreen('login');
-  }, []);
+  };
 
-  const handleBiometricAuthenticate = useCallback(async () => {
+  const handleBiometricAuthenticate = async () => {
     return await biometricAuthenticate();
-  }, [biometricAuthenticate]);
+  };
 
-  const handleBiometricUnlock = useCallback(() => {
+  const handleBiometricUnlock = () => {
     biometricUnlock();
-  }, [biometricUnlock]);
+  };
 
-  // Render appropriate dashboard based on user role
   const renderDashboard = () => {
     if (user?.role === 'admin') {
       return (
@@ -118,7 +117,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
-      {/* Biometric Lock Screen */}
       {currentScreen === 'dashboard' && biometricEnabled && (
         <BiometricLock
           isLocked={biometricLocked}
