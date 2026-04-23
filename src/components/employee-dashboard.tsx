@@ -30,6 +30,7 @@ import { useGPS } from '@/hooks/use-gps';
 import { useNotifications } from '@/hooks/use-notifications';
 import { CameraCapture } from '@/components/camera-capture';
 import { to12HourFormat, dateTo12HourFormat, dateTo12HourFormatWithSeconds, dateTo24HourFormatWithSeconds, formatTimeWithSeconds } from '@/lib/time-utils';
+import { isWithinGeofence, getGeofenceViolationMessage } from '@/lib/geofence';
 
 interface AttendanceRecord {
   id: string;
@@ -568,6 +569,25 @@ export function EmployeeDashboard({ onLogout, onSettings }: EmployeeDashboardPro
 
       if (!coords || !coords.latitude || !coords.longitude) {
         throw new Error('GPS coordinates not available. Please try again.');
+      }
+
+      // Check geofence if enabled for this employee
+      if (user?.geofenceEnabled && user.geofenceLat && user.geofenceLng) {
+        console.log('Geofence is enabled, checking location...');
+        const isWithin = isWithinGeofence(
+          { lat: coords.latitude, lng: coords.longitude },
+          { lat: user.geofenceLat, lng: user.geofenceLng, radius: user.geofenceRadius || 100 }
+        );
+
+        if (!isWithin) {
+          const violationMessage = getGeofenceViolationMessage(
+            { lat: coords.latitude, lng: coords.longitude },
+            { lat: user.geofenceLat, lng: user.geofenceLng, radius: user.geofenceRadius || 100 }
+          );
+          console.log('Geofence violation:', violationMessage);
+          throw new Error(violationMessage || 'You are outside the allowed attendance area.');
+        }
+        console.log('User is within geofence, allowing punch.');
       }
 
       // Send to API with LOCAL timestamp and pre-formatted local times

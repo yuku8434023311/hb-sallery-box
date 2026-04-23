@@ -144,6 +144,7 @@ export async function POST(request: NextRequest) {
       salary, overtimeRate, adminId, organizationId, profilePhoto,
       shiftIds,
       aadharNumber, panNumber, accountNumber, ifscCode, upiId,
+      geofenceEnabled, geofenceLat, geofenceLng, geofenceRadius,
     } = body;
 
     // Validate required fields with detailed error messages
@@ -234,6 +235,10 @@ export async function POST(request: NextRequest) {
         biometricEnabled: false,
         active: true,
         starOfMonth: false,
+        geofenceEnabled: geofenceEnabled || false,
+        geofenceLat: geofenceLat || null,
+        geofenceLng: geofenceLng || null,
+        geofenceRadius: geofenceRadius || 100,
         shifts: shiftIds && shiftIds.length > 0 ? {
           create: shiftIds.map((shiftId: string) => ({
             shiftId,
@@ -284,6 +289,10 @@ export async function PUT(request: NextRequest) {
       active: data.active,
       starOfMonth: data.starOfMonth,
       profilePhoto: data.profilePhoto,
+      geofenceEnabled: data.geofenceEnabled,
+      geofenceLat: data.geofenceLat,
+      geofenceLng: data.geofenceLng,
+      geofenceRadius: data.geofenceRadius,
     };
 
     // If password is provided, hash and update

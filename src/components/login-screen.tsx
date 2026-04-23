@@ -113,6 +113,10 @@ export function LoginScreen({ onLogin, onRegister }: LoginScreenProps) {
         department: data.user.department,
         salary: data.user.salary,
         profilePhoto: data.user.profilePhoto,
+        geofenceEnabled: data.user.geofenceEnabled,
+        geofenceLat: data.user.geofenceLat,
+        geofenceLng: data.user.geofenceLng,
+        geofenceRadius: data.user.geofenceRadius,
       });
 
       toast({

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Edit2, Trash2, Search, X, User, Lock, Phone, Mail, 
   MapPin, Briefcase, Building, DollarSign, Camera, Upload,
-  Eye, EyeOff, AlertCircle, Loader2, Check
+  Eye, EyeOff, AlertCircle, Loader2, Check, Navigation
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -79,6 +79,10 @@ export function EmployeeManagement() {
     salary: '',
     profilePhoto: '',
     active: true,
+    geofenceEnabled: false,
+    geofenceLat: '',
+    geofenceLng: '',
+    geofenceRadius: '100',
   });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -122,6 +126,10 @@ export function EmployeeManagement() {
       salary: '',
       profilePhoto: '',
       active: true,
+      geofenceEnabled: false,
+      geofenceLat: '',
+      geofenceLng: '',
+      geofenceRadius: '100',
     });
     setError('');
     setShowPassword(false);
@@ -148,6 +156,10 @@ export function EmployeeManagement() {
       salary: employee.salary.toString(),
       profilePhoto: employee.profilePhoto || '',
       active: employee.active,
+      geofenceEnabled: (employee as any).geofenceEnabled || false,
+      geofenceLat: (employee as any).geofenceLat ? (employee as any).geofenceLat.toString() : '',
+      geofenceLng: (employee as any).geofenceLng ? (employee as any).geofenceLng.toString() : '',
+      geofenceRadius: (employee as any).geofenceRadius ? (employee as any).geofenceRadius.toString() : '100',
     });
     setShowEditDialog(true);
   };
@@ -176,6 +188,33 @@ export function EmployeeManagement() {
     setShowCameraCapture(false);
   };
 
+  // Handle get current location
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by your browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData(prev => ({
+          ...prev,
+          geofenceLat: position.coords.latitude.toFixed(6),
+          geofenceLng: position.coords.longitude.toFixed(6),
+        }));
+      },
+      (error) => {
+        setError('Unable to get your location. Please enter coordinates manually.');
+        console.error('Geolocation error:', error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
+
   // Add employee
   const handleAddEmployee = async () => {
     if (!formData.userId || !formData.password || !formData.name || !formData.phone) {
@@ -187,15 +226,30 @@ export function EmployeeManagement() {
     setError('');
 
     try {
+      const requestBody: Record<string, unknown> = {
+        ...formData,
+        salary: parseFloat(formData.salary) || 0,
+        adminId: user?.id,
+        organizationId: user?.organizationId,
+      };
+
+      // Only include geofence fields if enabled
+      if (formData.geofenceEnabled) {
+        requestBody.geofenceEnabled = true;
+        requestBody.geofenceLat = parseFloat(formData.geofenceLat) || null;
+        requestBody.geofenceLng = parseFloat(formData.geofenceLng) || null;
+        requestBody.geofenceRadius = parseFloat(formData.geofenceRadius) || 100;
+      } else {
+        requestBody.geofenceEnabled = false;
+        requestBody.geofenceLat = null;
+        requestBody.geofenceLng = null;
+        requestBody.geofenceRadius = null;
+      }
+
       const response = await fetch('/api/employees', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          salary: parseFloat(formData.salary) || 0,
-          adminId: user?.id,
-          organizationId: user?.organizationId,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
@@ -227,14 +281,29 @@ export function EmployeeManagement() {
     setError('');
 
     try {
+      const requestBody: Record<string, unknown> = {
+        id: selectedEmployee.id,
+        ...formData,
+        salary: parseFloat(formData.salary) || 0,
+      };
+
+      // Only include geofence fields if enabled
+      if (formData.geofenceEnabled) {
+        requestBody.geofenceEnabled = true;
+        requestBody.geofenceLat = parseFloat(formData.geofenceLat) || null;
+        requestBody.geofenceLng = parseFloat(formData.geofenceLng) || null;
+        requestBody.geofenceRadius = parseFloat(formData.geofenceRadius) || 100;
+      } else {
+        requestBody.geofenceEnabled = false;
+        requestBody.geofenceLat = null;
+        requestBody.geofenceLng = null;
+        requestBody.geofenceRadius = null;
+      }
+
       const response = await fetch('/api/employees', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: selectedEmployee.id,
-          ...formData,
-          salary: parseFloat(formData.salary) || 0,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
@@ -462,6 +531,79 @@ export function EmployeeManagement() {
           className="w-4 h-4 rounded border-input"
         />
         <Label htmlFor="active">Active Employee</Label>
+      </div>
+
+      {/* Geofence Settings */}
+      <div className="space-y-3 pt-4 border-t">
+        <div className="flex items-center justify-between">
+          <Label className="text-base font-medium">Geofence Settings</Label>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="geofenceEnabled"
+              checked={formData.geofenceEnabled}
+              onChange={(e) => setFormData(prev => ({ ...prev, geofenceEnabled: e.target.checked }))}
+              className="w-4 h-4 rounded border-input"
+            />
+            <Label htmlFor="geofenceEnabled" className="cursor-pointer">Enable</Label>
+          </div>
+        </div>
+
+        {formData.geofenceEnabled && (
+          <div className="space-y-3 ml-2 pl-4 border-l-2 border-muted">
+            {/* Get Current Location Button */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleGetCurrentLocation}
+              className="w-full"
+            >
+              <Navigation className="h-4 w-4 mr-2" />
+              Get Current Location
+            </Button>
+
+            {/* Latitude & Longitude */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-sm">Latitude</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={formData.geofenceLat}
+                  onChange={(e) => setFormData(prev => ({ ...prev, geofenceLat: e.target.value }))}
+                  placeholder="28.6139"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Longitude</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  value={formData.geofenceLng}
+                  onChange={(e) => setFormData(prev => ({ ...prev, geofenceLng: e.target.value }))}
+                  placeholder="77.2090"
+                />
+              </div>
+            </div>
+
+            {/* Radius */}
+            <div className="space-y-2">
+              <Label className="text-sm">Allowed Radius (meters)</Label>
+              <Input
+                type="number"
+                value={formData.geofenceRadius}
+                onChange={(e) => setFormData(prev => ({ ...prev, geofenceRadius: e.target.value }))}
+                placeholder="100"
+                min="10"
+                max="1000"
+              />
+              <p className="text-xs text-muted-foreground">
+                Employee can punch in/out within this radius from the specified location
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Error */}

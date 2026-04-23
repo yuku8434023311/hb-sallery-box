@@ -20,6 +20,11 @@ export interface User {
   biometricEnabled?: boolean;
   active?: boolean;
   loginTime?: number; // Timestamp for session tracking
+  // Geofence settings for employees
+  geofenceEnabled?: boolean;
+  geofenceLat?: number;
+  geofenceLng?: number;
+  geofenceRadius?: number;
 }
 
 interface AuthState {

@@ -98,6 +98,10 @@ export async function POST(request: NextRequest) {
           organizationId: employee.organizationId,
           organizationName: employee.organization?.name || null,
           profilePhoto: employee.profilePhoto,
+          geofenceEnabled: employee.geofenceEnabled,
+          geofenceLat: employee.geofenceLat,
+          geofenceLng: employee.geofenceLng,
+          geofenceRadius: employee.geofenceRadius,
         },
       });
     }

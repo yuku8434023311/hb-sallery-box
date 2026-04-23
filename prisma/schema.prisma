@@ -81,6 +81,13 @@ model Employee {
   profilePhoto      String?
   active            Boolean  @default(true)
   starOfMonth       Boolean  @default(false)
+
+  // Geofence settings for location-based attendance
+  geofenceEnabled   Boolean  @default(false)
+  geofenceLat       Float?   // Geofence center latitude
+  geofenceLng       Float?   // Geofence center longitude
+  geofenceRadius    Float?   @default(100) // Radius in meters
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
