@@ -1,23 +1,67 @@
 export default function Home() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
-      <div className="text-center">
-        <div className="w-32 h-32 rounded-3xl overflow-hidden shadow-2xl mx-auto mb-8 bg-white">
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #d1fae5 100%)',
+      padding: '20px'
+    }}>
+      <div style={{
+        textAlign: 'center',
+        maxWidth: '500px'
+      }}>
+        <div style={{
+          width: '200px',
+          height: '200px',
+          borderRadius: '24px',
+          overflow: 'hidden',
+          boxShadow: '0 20px 40px rgba(16, 185, 129, 0.3)',
+          margin: '0 auto 32px',
+          background: 'white'
+        }}>
           <img
             src="/logo.jpg"
             alt="HB Sallery Box"
-            className="w-full h-full object-cover"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              display: 'block'
+            }}
           />
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-3">
+
+        <h1 style={{
+          fontSize: '48px',
+          fontWeight: 'bold',
+          color: '#111827',
+          marginBottom: '16px',
+          marginTop: '0'
+        }}>
           HB Sallery Box
         </h1>
-        <p className="text-gray-600 text-lg">
+
+        <p style={{
+          fontSize: '20px',
+          color: '#6b7280',
+          marginBottom: '32px'
+        }}>
           Secure Staff Management
         </p>
-        <p className="text-emerald-600 mt-4">
+
+        <div style={{
+          padding: '16px 32px',
+          backgroundColor: '#10b981',
+          color: 'white',
+          borderRadius: '12px',
+          fontSize: '18px',
+          fontWeight: '500',
+          display: 'inline-block'
+        }}>
           Loading...
-        </p>
+        </div>
       </div>
     </div>
   );
